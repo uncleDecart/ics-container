@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title> Inventory and Confgiuration Services Recasters </title>
+</head>
+
+<body>
+    <h1> Enabled Recasters </h1>
+    <div style="width: 50%; margin: auto">
+    {{ range $element := . }}
+        <div style="padding: 10px; background-color: #EEE; margin: 20px">
+        <p style="font-size: 20px">
+            {{$element.Name}} 
+            <button onclick="redirectToEditPage('{{$element.Name}}')">Edit</button>
+        </p>
+        </div>
+    {{ end }}
+</body>
+
+
+<script type="text/javascript">
+    function redirectToEditPage(name) {
+        window.location.href = "./edit?name=" + name;
+    }
+</script>
+
+</html>
+
+
