@@ -53,6 +53,19 @@ func NewPatchEnvelopeManagerPreInit(endpoint string, data map[string][]byte, env
 	return peMgr, nil
 }
 
+func (mgr *PatchEnvelopeManager) Envelopes() []string {
+	mgr.Lock()
+	defer mgr.Unlock()
+
+	result := make([]string, len(mgr.envelopesAvailable))
+
+	for i := range mgr.envelopesAvailable {
+		result[i] = *mgr.envelopesAvailable[i].PatchID
+	}
+
+	return result
+}
+
 func (mgr *PatchEnvelopeManager) GetBlobInfo(patchID, fileName string) *c.BinaryBlob {
 	mgr.Lock()
 	defer mgr.Unlock()
@@ -82,35 +95,62 @@ func (mgr *PatchEnvelopeManager) View() PatchEnvelopeView {
 	}
 }
 
-func (mgr *PatchEnvelopeManager) Fetch() error {
+func (mgr *PatchEnvelopeManager) Fetch() ([]string, error) {
 	mgr.Lock()
 	defer mgr.Unlock()
 
-	if err := mgr.fetchDescription(); err != nil {
-		return err
-	}
-	if err := mgr.fetchAllBinaryBlobs(); err != nil {
-		return err
+	changedEnvelopes, err := mgr.fetchDescription()
+
+	if err != nil {
+		return []string{}, err
 	}
 
-	return nil
+	if err := mgr.fetchAllBinaryBlobs(); err != nil {
+		return []string{}, err
+	}
+
+	return changedEnvelopes, nil
 }
 
-func (mgr *PatchEnvelopeManager) fetchDescription() error {
+func (mgr *PatchEnvelopeManager) fetchDescription() ([]string, error) {
 	response, err := mgr.client.GetAvailablePatchEnvelopes(context.TODO())
 	if err != nil {
-		return err
+		return []string{}, err
 	}
 	defer response.Body.Close()
 
 	pes, err := client.ParseGetAvailablePatchEnvelopesResponse(response)
 	if err != nil {
-		return err
+		return []string{}, err
 	}
+
+	changedEnvelopes := descDiff(mgr.envelopesAvailable, *pes.JSON200)
 
 	mgr.envelopesAvailable = *pes.JSON200
 
-	return nil
+	return changedEnvelopes, nil
+}
+
+func descDiff(desc1, desc2 []c.PatchEnvelopeDescription) []string {
+	diff := make([]string, 0)
+
+	// Create a map to store the elements of the first slice
+	elements := make(map[string]struct{})
+	for _, v := range desc1 {
+		key := *v.PatchID + ":" + *v.Version
+		elements[key] = struct{}{}
+	}
+
+	// Check each element in the second slice
+	// If an element is not in the map, it is added to the diff slice
+	for _, v := range desc2 {
+		key := *v.PatchID + ":" + *v.Version
+		if _, exists := elements[key]; !exists {
+			diff = append(diff, *v.PatchID)
+		}
+	}
+
+	return diff
 }
 
 func (mgr *PatchEnvelopeManager) fetchAllBinaryBlobs() error {

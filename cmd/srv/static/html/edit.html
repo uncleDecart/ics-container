@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title> Edit Recaster </title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<h1> Edit {{ .Recaster.Name }} </h1>
+
+<ul class="container">
+    <li>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" size="10"/>
+    </li>
+
+    <li>
+        <div class="dropdown">
+            <button>Available Patch Envelopes</button>
+            <div class="dropdown-content" id="envelopesContainer"></div>
+        </div>
+    </li>
+
+    <li>
+        <label for="endpoint">Endpoint:</label>
+        <input type="text" id="endpoint" name="endpoint" size="16" placeholder='169.168.169.256:3232' />
+
+        <div class="editor-container">
+            <label for="headersEditor">Headers:</label>
+            <textarea id="headersEditor" placeholder="{'Content-Type' : 'application/json'}"></textarea>
+            <button id="headersEditorButton">Render </button>
+        </div>
+
+        <div class="editor-container">
+            <label for="bodyEditor">Body:</label>
+            <textarea id="bodyEditor" placeholder="Enter JSON here..."></textarea>
+            <button id="bodyEditorButton">Render </button>
+        </div>
+    </li>
+
+    <li>
+        <label for="enableBackup">Enable Backup:</label>
+        <input type="checkbox" id="enableBackup" name="enableBackup" onchange="toggleBackupGroup()">
+
+        <div id="backup-container">
+            <h4> Configuration for load request </h4>
+            <p>
+                <label for="LoadType">Choose an HTTP Request:</label>
+                <select id="LoadType">
+                    <option value="get">GET Request</option>
+                    <option value="post">POST Request</option>
+                </select>
+            </p>
+            <p>
+                <label for="LoadEndpoint">Load Endpoint</label>
+                <input type="text" id="LoadEndpoint" name="Load endpoint" size="16" placeholder='169.168.169.256:3232' />
+            </p>
+
+            <div class="editor-container">
+                <label for="loaderHeadersEditor">Headers:</label>
+                <textarea id="loaderHeadersEditor" placeholder="{'Content-Type' : 'application/json'}"></textarea>
+            </div>
+
+            <div class="editor-container">
+                <label for="loaderBodyEditor">Body:</label>
+                <textarea id="loaderBodyEditor" placeholder="{'Content-Type' : 'application/json'}"></textarea>
+            </div>
+
+            <h4> Configuration for restore request </h4>
+            <p>
+                <label for="RestoreType">Choose an HTTP Request:</label>
+                <select id="RestoreType">
+                    <option value="get">GET Request</option>
+                    <option value="post">POST Request</option>
+                </select>
+            </p>
+            <p>
+                <label for="RestoreEndpoint">Load Endpoint</label>
+                <input type="text" id="RestoreEndpoint" name="Restore Endpoint" size="16" placeholder='169.168.169.256:3232' />
+            </p>
+
+            <div class="editor-container">
+                <label for="restoreHeadersEditor">Headers:</label>
+                <textarea id="restoreHeadersEditor" placeholder="{'Content-Type' : 'application/json'}"></textarea>
+            </div>
+
+            <div class="editor-container">
+                <label for="restoreBodyEditor">Body:</label>
+                <textarea id="restoreBodyEditor" placeholder="{'Content-Type' : 'application/json'}"></textarea>
+            </div>
+
+        </div>
+    </li>
+
+    <li>
+        <button id="submitForm"> Submit </button>
+    </li>
+
+</ul>
+
+<script src="/static/js/edit.js"></script>
+
+</body>
+</html>
+

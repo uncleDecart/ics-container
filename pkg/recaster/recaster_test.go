@@ -16,23 +16,20 @@ func TestIsEqual(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewGomegaWithT(t)
 
-	dummyPeMgr, err := pemanager.NewPatchEnvelopeManager("localhost:2222")
-	g.Expect(err).To(gomega.BeNil())
-
-	recA := recaster.NewRecaster(recaster.Config{
+	recA := recaster.Recaster{
 		Name:           "Recaster A",
 		PatchEnvelopes: []string{"patch1", "patch2"},
-	}, dummyPeMgr)
+	}
 
-	recB := recaster.NewRecaster(recaster.Config{
+	recB := recaster.Recaster{
 		Name:           "Recaster B",
 		PatchEnvelopes: []string{"patch1", "patch2"},
-	}, dummyPeMgr)
+	}
 
-	recC := recaster.NewRecaster(recaster.Config{
+	recC := recaster.Recaster{
 		Name:           "Recaster A",
 		PatchEnvelopes: []string{"patch3", "patch4"},
-	}, dummyPeMgr)
+	}
 
 	g.Expect(recA.IsEqual(recB)).To(gomega.BeFalse())
 	g.Expect(recB.IsEqual(recA)).To(gomega.BeFalse())
@@ -75,12 +72,12 @@ func TestTransformString(t *testing.T) {
 	input := fmt.Sprintf("color : $(%s/%s/size)", patchID, fileName)
 	expected := "color : 42"
 
-	recB := recaster.NewRecaster(recaster.Config{
+	rec := recaster.Recaster{
 		Name:           "Recaster A",
 		PatchEnvelopes: []string{patchID},
-	}, peMgr)
+	}
 
-	transformed, err := recB.TransformString(input)
+	transformed, err := rec.TransformString(input, peMgr)
 	g.Expect(err).To(gomega.BeNil())
 	g.Expect(transformed).To(gomega.BeEquivalentTo(expected))
 }

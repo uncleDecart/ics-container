@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/uncleDecart/ics-container/pkg/pemanager"
@@ -12,39 +15,64 @@ import (
 func main() {
 	r := chi.NewRouter()
 
-	addr := "http://127.0.0.1:8889"
-	peMgr, err := pemanager.NewPatchEnvelopeManager(addr)
+	configPath := flag.String("cfg", "config.json", "path to configuration file")
+
+	data, err := os.ReadFile(*configPath)
 	if err != nil {
-		fmt.Println("Error : ", err)
+		fmt.Println(err)
 		return
 	}
-	peMgr.Fetch()
 
-	name := "bazinga"
+	mngr := &recaster.RecasterManager{}
 
-	cfg := recaster.Config{
-		Name: name,
+	err = json.Unmarshal(data, mngr)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	recaster := &recaster.RecasterManager{
-		PeMgr: peMgr,
+	mngr.ConfigPath = *configPath
+
+	peMngr, err := pemanager.NewPatchEnvelopeManager(mngr.PeServerURL)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 
-	recaster.Put(cfg)
+	_, err = peMngr.Fetch()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	r.Get("/static/index", RenderRecasterIndexPage(recaster))
-	r.Get("/static/edit", RenderRecasterEditPage(recaster))
+	mngr.PeMgr = peMngr
 
-	r.Post("/edit", HandleRecasterEdit(recaster))
-	r.Post("/render", HandleRecasterTransform(recaster))
+	err = mngr.Update()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	http.ListenAndServe(":3333", r)
+	fs := http.FileServer(http.Dir("static"))
+	r.Handle("/static/*", http.StripPrefix("/static/", fs))
 
-	//transformed, err := recaster.Transform("patch1/config.yml/data")
-	//if err != nil {
-	//	fmt.Println("FAILED ", err)
-	//	return
-	//}
+	r.Get("/index", RenderRecasterIndexPage(mngr))
+	r.Get("/edit", RenderRecasterEditPage(mngr))
 
-	//fmt.Println(transformed)
+	r.Route("/api/", func(r chi.Router) {
+		r.Get("/recasters", HandleRecasterGet(mngr))
+
+		r.Post("/recaster", HandleRecasterEdit(mngr))
+		r.Delete("/recaster", HandleRecasterDelete(mngr))
+
+		r.Get("/envelopes", HandlePatchEnvelopesGet(mngr))
+
+		r.Post("/render", HandleRecasterTransform(mngr))
+
+		r.Get("/status", HandleRecastersStatus(mngr))
+	})
+
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		fmt.Println(err)
+	}
 }
