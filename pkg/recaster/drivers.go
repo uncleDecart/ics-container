@@ -6,6 +6,7 @@ package recaster
 // are expected to be saved and restored using JSON
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -75,7 +76,7 @@ func (ho *HTTPOutput) Type() string {
 
 func (ho *HTTPOutput) Execute(templates map[string]string) error {
 	client := &http.Client{}
-	body := strings.NewReader(templates["body"])
+	body := bytes.NewReader([]byte(templates["body"]))
 
 	req, err := http.NewRequest(ho.ReqType, ho.OutputURL, body)
 	if err != nil {

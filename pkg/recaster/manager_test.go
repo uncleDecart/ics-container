@@ -158,10 +158,10 @@ func TestFetch(t *testing.T) {
 	}
 
 	data := map[string]string{
-		patchA + ":" + fileNameA: "beforeAA",
-		patchA + ":" + fileNameB: "beforeAB",
-		patchB + ":" + fileNameA: "beforeBA",
-		patchB + ":" + fileNameB: "beforeBB",
+		patchA + ":" + fileNameA: "YmVmb3JlQUE=",
+		patchA + ":" + fileNameB: "YmVmb3JlQUI=",
+		patchB + ":" + fileNameA: "YmVmb3JlQkE=",
+		patchB + ":" + fileNameB: "YmVmb3JlQkI=",
 	}
 
 	server := mock.CreateMockMetadataServer(&envelopesAvailable, &data)

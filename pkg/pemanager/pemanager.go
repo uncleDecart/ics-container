@@ -85,8 +85,15 @@ func (mgr *PatchEnvelopeManager) GetBlobData(patchID, fileName string) ([]byte, 
 	mgr.Lock()
 	defer mgr.Unlock()
 
-	val, ok := mgr.data[getDataKey(patchID, fileName)]
-	return val, ok
+	if val, ok := mgr.data[getDataKey(patchID, fileName)]; ok {
+		decoded, err := utils.DecodeBase64(val)
+		if err != nil {
+			return []byte{}, false
+		}
+		return decoded, true
+	}
+
+	return []byte{}, false
 }
 
 func (mgr *PatchEnvelopeManager) View() PatchEnvelopeView {

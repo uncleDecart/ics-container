@@ -18,21 +18,15 @@ type RecasterManager struct {
 }
 
 func (rMgr *RecasterManager) Put(r Recaster) error {
-	defer func() {
-		rMgr.saveToFile()
-		r.Recast(rMgr.PeMgr)
-	}()
-
 	for idx, rec := range rMgr.Recasters {
 		if rec.IsEqual(r) {
 			rMgr.Recasters[idx] = r
-			return nil
+			return rMgr.saveToFile()
 		}
 	}
 
 	rMgr.Recasters = append(rMgr.Recasters, r)
-
-	return nil
+	return rMgr.saveToFile()
 }
 
 func (rMgr *RecasterManager) Delete(r Recaster) bool {

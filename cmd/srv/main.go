@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,9 +14,12 @@ import (
 )
 
 func main() {
+	// Temprorary disable certificate check
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
 	r := chi.NewRouter()
 
-	configPath := flag.String("cfg", "config.json", "path to configuration file")
+	configPath := flag.String("c", "config.json", "path to configuration file")
 
 	data, err := os.ReadFile(*configPath)
 	if err != nil {
@@ -46,12 +50,6 @@ func main() {
 	}
 
 	mngr.PeMgr = peMngr
-
-	err = mngr.Update()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/static/*", http.StripPrefix("/static/", fs))
